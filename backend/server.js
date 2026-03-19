@@ -12,10 +12,7 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -34,19 +31,6 @@ app.use('/admin', adminRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-
-// Serve frontend in production
-const fs = require('fs');
-const frontendDist = path.join(__dirname, 'public', 'frontend');
-console.log('Frontend dist path:', frontendDist, '| Exists:', fs.existsSync(frontendDist));
-
-if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
-  app.use(express.static(frontendDist));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
-}
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
