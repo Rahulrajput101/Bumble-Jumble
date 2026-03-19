@@ -7,6 +7,10 @@
     "seed": "cd backend && npm run seed",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
