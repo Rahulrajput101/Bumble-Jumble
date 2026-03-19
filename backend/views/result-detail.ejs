@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result - <%= result.username %> | MCQ Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <div class="header-content">
+        <a href="/admin" class="back-link">&larr; Back to Dashboard</a>
+        <h1>Test Result: <span class="highlight"><%= result.username %></span></h1>
+        <p class="subtitle">Submitted on <%= new Date(result.createdAt).toLocaleString() %></p>
+      </div>
+    </header>
+
+    <!-- User Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= result.score %>/<%= result.totalQuestions %></span>
+          <span class="stat-label">Score</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon <%= result.percentage >= 70 ? 'green' : result.percentage >= 40 ? 'gold' : 'red' %>">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= result.percentage %>%</span>
+          <span class="stat-label">Percentage</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= result.formattedTime %></span>
+          <span class="stat-label">Time Taken</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon <%= result.autoSubmitted ? 'red' : 'green' %>">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= result.autoSubmitted ? 'Auto' : 'Manual' %></span>
+          <span class="stat-label"><%= result.autoSubmitted ? result.autoSubmitReason : 'Submitted by user' %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="breakdown">
+      <div class="breakdown-item correct">
+        <span class="breakdown-count"><%= result.correctAnswers %></span>
+        <span class="breakdown-label">Correct</span>
+      </div>
+      <div class="breakdown-item wrong">
+        <span class="breakdown-count"><%= result.wrongAnswers %></span>
+        <span class="breakdown-label">Wrong</span>
+      </div>
+      <div class="breakdown-item unanswered">
+        <span class="breakdown-count"><%= result.unanswered %></span>
+        <span class="breakdown-label">Unanswered</span>
+      </div>
+    </div>
+
+    <!-- Detailed Answers -->
+    <h2 class="section-title">Detailed Answers</h2>
+    <div class="answers-list">
+      <% result.answers.forEach((ans, idx) => { %>
+        <% const q = questions.find(q => q.questionNumber === ans.questionNumber); %>
+        <div class="answer-card <%= ans.selectedAnswer ? (ans.isCorrect ? 'correct' : 'wrong') : 'unanswered' %>">
+          <div class="answer-header">
+            <span class="q-number">Q<%= ans.questionNumber %></span>
+            <span class="q-status">
+              <% if (!ans.selectedAnswer) { %>
+                <span class="badge badge-muted">Not Answered</span>
+              <% } else if (ans.isCorrect) { %>
+                <span class="badge badge-success">Correct</span>
+              <% } else { %>
+                <span class="badge badge-danger">Wrong</span>
+              <% } %>
+            </span>
+          </div>
+          <% if (q) { %>
+            <p class="q-text"><%= q.question %></p>
+            <div class="options-grid">
+              <% ['a', 'b', 'c', 'd'].forEach(opt => { %>
+                <div class="option
+                  <%= opt === ans.correctAnswer ? 'correct-option' : '' %>
+                  <%= opt === ans.selectedAnswer && !ans.isCorrect ? 'wrong-option' : '' %>
+                ">
+                  <span class="option-letter"><%= opt.toUpperCase() %></span>
+                  <span><%= q.options[opt] %></span>
+                  <% if (opt === ans.correctAnswer) { %>
+                    <span class="option-tag correct-tag">Correct</span>
+                  <% } %>
+                  <% if (opt === ans.selectedAnswer && !ans.isCorrect) { %>
+                    <span class="option-tag wrong-tag">User's Answer</span>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</body>
+</html>

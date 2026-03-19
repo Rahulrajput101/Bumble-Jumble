@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCQ Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <div class="header-content">
+        <h1>MCQ Test - Admin Dashboard</h1>
+        <p class="subtitle">Monitor test results and user performance</p>
+      </div>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.totalTests %></span>
+          <span class="stat-label">Total Tests Taken</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.avgScore %>%</span>
+          <span class="stat-label">Average Score</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.avgTime %></span>
+          <span class="stat-label">Average Time</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value"><%= stats.topScore %>%</span>
+          <span class="stat-label">Top Score</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+      <h2>All Test Results</h2>
+      <% if (results.length > 0) { %>
+        <button class="btn btn-danger" onclick="clearAllResults()">Clear All Results</button>
+      <% } %>
+    </div>
+
+    <!-- Results Table -->
+    <% if (results.length === 0) { %>
+      <div class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <p>No test results yet. Waiting for users to take the test.</p>
+      </div>
+    <% } else { %>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Score</th>
+              <th>Correct</th>
+              <th>Wrong</th>
+              <th>Unanswered</th>
+              <th>Percentage</th>
+              <th>Time Taken</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% results.forEach((r, index) => { %>
+              <tr class="<%= r.autoSubmitted ? 'auto-submitted' : '' %>">
+                <td><%= index + 1 %></td>
+                <td class="username"><%= r.username %></td>
+                <td><strong><%= r.score %>/<%= r.totalQuestions %></strong></td>
+                <td class="correct"><%= r.correctAnswers %></td>
+                <td class="wrong"><%= r.wrongAnswers %></td>
+                <td class="unanswered"><%= r.unanswered %></td>
+                <td>
+                  <div class="percentage-bar">
+                    <div class="percentage-fill <%= r.percentage >= 70 ? 'high' : r.percentage >= 40 ? 'medium' : 'low' %>" style="width: <%= r.percentage %>%"></div>
+                    <span><%= r.percentage %>%</span>
+                  </div>
+                </td>
+                <td><%= r.formattedTime %></td>
+                <td>
+                  <% if (r.autoSubmitted) { %>
+                    <span class="badge badge-warning" title="<%= r.autoSubmitReason %>">Auto-Submitted</span>
+                  <% } else { %>
+                    <span class="badge badge-success">Completed</span>
+                  <% } %>
+                </td>
+                <td class="date"><%= new Date(r.createdAt).toLocaleString() %></td>
+                <td class="actions-cell">
+                  <a href="/admin/result/<%= r._id %>" class="btn btn-sm btn-primary">View Details</a>
+                  <button class="btn btn-sm btn-danger" onclick="deleteResult('<%= r._id %>')">Delete</button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    async function deleteResult(id) {
+      if (!confirm('Are you sure you want to delete this result?')) return;
+      try {
+        const res = await fetch(`/admin/result/${id}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+      } catch (e) {
+        alert('Failed to delete');
+      }
+    }
+
+    async function clearAllResults() {
+      if (!confirm('Are you sure you want to delete ALL results? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/admin/results/clear', { method: 'DELETE' });
+        if (res.ok) location.reload();
+      } catch (e) {
+        alert('Failed to clear results');
+      }
+    }
+  </script>
+</body>
+</html>
