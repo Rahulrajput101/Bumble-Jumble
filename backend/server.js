@@ -34,12 +34,22 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve frontend in production
-const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendDist));
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
-  res.sendFile(path.join(frontendDist, 'index.html'));
-});
+const fs = require('fs');
+const frontendPaths = [
+  path.join(__dirname, '..', 'frontend', 'dist'),
+  path.join(__dirname, 'dist'),
+  path.resolve('/app/frontend/dist')
+];
+const frontendDist = frontendPaths.find(p => fs.existsSync(p)) || frontendPaths[0];
+console.log('Frontend dist path:', frontendDist, '| Exists:', fs.existsSync(frontendDist));
+
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;
