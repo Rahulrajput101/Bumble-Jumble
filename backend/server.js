@@ -37,15 +37,10 @@ app.get('/api/health', (req, res) => {
 
 // Serve frontend in production
 const fs = require('fs');
-const frontendPaths = [
-  path.join(__dirname, '..', 'frontend', 'dist'),
-  path.join(__dirname, 'dist'),
-  path.resolve('/app/frontend/dist')
-];
-const frontendDist = frontendPaths.find(p => fs.existsSync(p)) || frontendPaths[0];
+const frontendDist = path.join(__dirname, 'public', 'frontend');
 console.log('Frontend dist path:', frontendDist, '| Exists:', fs.existsSync(frontendDist));
 
-if (fs.existsSync(frontendDist)) {
+if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
   app.use(express.static(frontendDist));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
