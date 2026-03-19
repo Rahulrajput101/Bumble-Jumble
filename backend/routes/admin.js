@@ -3,8 +3,37 @@ const router = express.Router();
 const Result = require('../models/Result');
 const Question = require('../models/Question');
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '9868480813';
+
+// Middleware to check admin auth
+function requireAuth(req, res, next) {
+  if (req.query.key === ADMIN_PASSWORD || req.headers['x-admin-key'] === ADMIN_PASSWORD) {
+    return next();
+  }
+  // Check cookie-based session
+  if (req.cookies && req.cookies.admin_auth === ADMIN_PASSWORD) {
+    return next();
+  }
+  return res.render('admin-login', { error: null });
+}
+
+// POST /admin/login
+router.post('/login', express.urlencoded({ extended: true }), (req, res) => {
+  if (req.body.password === ADMIN_PASSWORD) {
+    res.cookie('admin_auth', ADMIN_PASSWORD, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+    return res.redirect('/admin');
+  }
+  return res.render('admin-login', { error: 'Incorrect password' });
+});
+
+// GET /admin/logout
+router.get('/logout', (req, res) => {
+  res.clearCookie('admin_auth');
+  res.redirect('/admin');
+});
+
 // GET /admin - Admin dashboard
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const results = await Result.find({})
       .select('-__v')
@@ -40,7 +69,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /admin/result/:id - Detailed result view
-router.get('/result/:id', async (req, res) => {
+router.get('/result/:id', requireAuth, async (req, res) => {
   try {
     const result = await Result.findById(req.params.id);
     if (!result) {
@@ -57,7 +86,7 @@ router.get('/result/:id', async (req, res) => {
 });
 
 // DELETE /admin/result/:id - Delete a result
-router.delete('/result/:id', async (req, res) => {
+router.delete('/result/:id', requireAuth, async (req, res) => {
   try {
     await Result.findByIdAndDelete(req.params.id);
     res.json({ success: true });
@@ -67,7 +96,7 @@ router.delete('/result/:id', async (req, res) => {
 });
 
 // DELETE /admin/results/clear - Clear all results
-router.delete('/results/clear', async (req, res) => {
+router.delete('/results/clear', requireAuth, async (req, res) => {
   try {
     await Result.deleteMany({});
     res.json({ success: true });
